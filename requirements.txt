@@ -1,0 +1,4 @@
+PySide6-Essentials>=6.8,<7
+pyserial>=3.5,<4
+PyYAML>=6,<7
+pydantic-ai-slim[openai]==2.66.0

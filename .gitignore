@@ -1,0 +1,43 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local application and editor settings
+.env
+.env.*
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Build and packaging output
+build/
+dist/
+build_qys/
+build_pump_test/
+*.spec.bak
+*.egg-info/
+release/
+test-artifacts/
+tools/nsis-*/
+docs/superpowers/
+docs/开源发布状态.md
+*.log
+
+# Installer and binary artifacts are published as Release assets
+*.exe
+*.msi
+*.zip
+*.7z
+*.dmg
+*.AppImage
+
+# OS files
+Thumbs.db
+Desktop.ini

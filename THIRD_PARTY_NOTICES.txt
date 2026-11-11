@@ -1,0 +1,70 @@
+QYS RTOS includes the following third-party software.
+
+PySide6 Essentials 6.12.0 and Shiboken6 6.12.0
+  Copyright The Qt Company Ltd. and contributors.
+  Used under LGPL-3.0-only. License text: licenses/LGPL-3.0-only.txt
+  (and licenses/GPL-3.0-only.txt, as referenced by the LGPL).
+  PySide source: https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.12.0-src/
+  Qt 6.12.0 source: https://download.qt.io/archive/qt/6.12/6.12.0/submodules/
+  Qt and PySide libraries are provided separately in the installed _internal
+  directory, allowing compatible modified versions to be substituted.
+
+Python 3.13
+  Python Software Foundation License. See licenses/Python.txt.
+  Source: https://www.python.org/downloads/source/
+
+pySerial 3.5
+  Copyright Chris Liechti and contributors. BSD-3-Clause.
+  See licenses/pyserial-BSD-3-Clause.txt.
+  Source: https://github.com/pyserial/pyserial/tree/v3.5
+
+PyYAML 6.0.3
+  Copyright Kirill Simonov and contributors. MIT License.
+  See licenses/PyYAML-MIT.txt.
+  Source: https://github.com/yaml/pyyaml/tree/6.0.3
+
+PyInstaller 6.22.3 bootloader
+  GPL with the PyInstaller bootloader exception. See licenses/PyInstaller.txt.
+  Source: https://github.com/pyinstaller/pyinstaller/tree/v6.22.3
+
+The Zephyr SDK, Zephyr source, Windows prerequisite tools, and individual
+board flashing tools are obtained separately when the user chooses to install
+them. Their own license terms and notices apply.
+
+
+Pydantic AI (OpenAI extra) Python runtime dependencies
+  Installed package: pydantic-ai-slim[openai]==2.66.0.
+  Scope: runtime dependencies selected by installed METADATA Requires-Dist fields for Windows and Python 3.13.
+  Other optional extras are excluded.
+  Each entry lists its installed version, declared license, project URL, and relative license or notice path.
+  Installed license files preserve their original bytes, except for logfire-api as described below.
+  annotated-types 0.8.0. License: MIT. License or notice files: licenses/agent-dependencies/annotated-types-0.8.0-LICENSE. Project URL: https://github.com/annotated-types/annotated-types.
+  anyio 4.16.0. License: MIT. License or notice files: licenses/agent-dependencies/anyio-4.16.0-LICENSE. Project URL: https://github.com/agronholm/anyio.
+  certifi 2026.10.23. License: MPL-2.0. License or notice files: licenses/agent-dependencies/certifi-2026.10.23-LICENSE. Project URL: https://github.com/certifi/python-certifi.
+  charset-normalizer 3.5.2. License: MIT. License or notice files: licenses/agent-dependencies/charset-normalizer-3.5.2-LICENSE. Project URL: https://github.com/jawah/charset_normalizer.
+  genai-prices 0.2.2. License: MIT. License or notice files: licenses/agent-dependencies/genai-prices-0.2.2-LICENSE. Project URL: https://github.com/pydantic/genai-prices.
+  griffelib 2.4.1. License: ISC. License or notice files: licenses/agent-dependencies/griffelib-2.4.1-LICENSE. Project URL: https://github.com/mkdocstrings/griffe.
+  h11 0.16.0. License: MIT. License or notice files: licenses/agent-dependencies/h11-0.16.0-LICENSE.txt. Project URL: https://github.com/python-hyper/h11.
+  httpcore2 2.16.0. License: BSD-3-Clause. License or notice files: licenses/agent-dependencies/httpcore2-2.16.0-LICENSE.md. Project URL: https://github.com/pydantic/httpx2/blob/main/src/httpcore2.
+  httpx2 2.16.0. License: BSD-3-Clause. License or notice files: licenses/agent-dependencies/httpx2-2.16.0-LICENSE.md. Project URL: https://github.com/pydantic/httpx2.
+  idna 3.20. License: BSD-3-Clause. License or notice files: licenses/agent-dependencies/idna-3.20-LICENSE.md. Project URL: https://github.com/kjd/idna.
+  jiter 0.19.0. License: MIT. License or notice files: licenses/agent-dependencies/jiter-0.19.0-LICENSE. Project URL: https://github.com/pydantic/jiter/.
+  logfire-api 5.5.0. License: MIT (installed License-Expression metadata). Complete text: licenses/agent-dependencies/logfire-api-5.5.0-LICENSE.
+    Neither the installed wheel nor the official PyPI 5.5.0 source archive includes a license file. The source archive SHA-256 matches PyPI release metadata.
+    The license text comes from the official pydantic/logfire v5.5.0 tag: https://github.com/pydantic/logfire/blob/v5.5.0/LICENSE.
+    PyPI release: https://pypi.org/project/logfire-api/5.5.0/.
+  openai 3.49.0. License: Apache-2.0. License or notice files: licenses/agent-dependencies/openai-3.49.0-LICENSE, licenses/agent-dependencies/openai-3.49.0-vendored-httpx_aiohttp-LICENSE. Project URL: https://github.com/openai/openai-python.
+    The OpenAI wheel also includes a separate httpx_aiohttp license under BSD-3-Clause. Its full text is in the second OpenAI path above.
+  opentelemetry-api 1.45.2. License: Apache-2.0. License or notice files: licenses/agent-dependencies/opentelemetry-api-1.45.2-LICENSE. Project URL: https://github.com/open-telemetry/opentelemetry-python.
+  pydantic 2.14.3. License: MIT. License or notice files: licenses/agent-dependencies/pydantic-2.14.3-LICENSE. Project URL: https://github.com/pydantic/pydantic.
+  pydantic-ai-slim 2.66.0. License: MIT. License or notice files: licenses/agent-dependencies/pydantic-ai-slim-2.66.0-LICENSE. Project URL: https://github.com/pydantic/pydantic-ai/tree/main/pydantic_ai_slim.
+  pydantic_core 2.50.4. License: MIT. License or notice files: licenses/agent-dependencies/pydantic-core-2.50.4-LICENSE. Project URL: https://github.com/pydantic/pydantic/tree/main/pydantic-core.
+  pydantic-graph 2.66.0. License: MIT. License or notice files: licenses/agent-dependencies/pydantic-graph-2.66.0-LICENSE. Project URL: https://github.com/pydantic/pydantic-ai.
+  regex 2026.11.9. License: Apache-2.0 AND CNRI-Python. License or notice files: licenses/agent-dependencies/regex-2026.11.9-LICENSE.txt. Project URL: https://github.com/mrabarnett/mrab-regex.
+  requests 2.34.2. License: Apache-2.0. License or notice files: licenses/agent-dependencies/requests-2.34.2-LICENSE, licenses/agent-dependencies/requests-2.34.2-NOTICE. Project URL: https://github.com/psf/requests.
+  sniffio 1.3.1. License: MIT OR Apache-2.0. License or notice files: licenses/agent-dependencies/sniffio-1.3.1-LICENSE, licenses/agent-dependencies/sniffio-1.3.1-LICENSE.APACHE2, licenses/agent-dependencies/sniffio-1.3.1-LICENSE.MIT. Project URL: https://github.com/python-trio/sniffio.
+  tiktoken 0.14.0. License: MIT. License or notice files: licenses/agent-dependencies/tiktoken-0.14.0-LICENSE. Project URL: https://github.com/openai/tiktoken.
+  truststore 0.10.5. License: MIT. License or notice files: licenses/agent-dependencies/truststore-0.10.5-LICENSE. Project URL: https://github.com/sethmlarson/truststore.
+  typing_extensions 4.16.0. License: PSF-2.0. License or notice files: licenses/agent-dependencies/typing-extensions-4.16.0-LICENSE. Project URL: https://github.com/python/typing_extensions.
+  typing-inspection 0.4.5. License: MIT. License or notice files: licenses/agent-dependencies/typing-inspection-0.4.5-LICENSE. Project URL: https://github.com/pydantic/typing-inspection.
+  urllib3 2.8.0. License: MIT. License or notice files: licenses/agent-dependencies/urllib3-2.8.0-LICENSE.txt. Project URL: https://github.com/urllib3/urllib3.
