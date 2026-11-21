@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071a31">
+  <meta name="description" content="QYS RTOS 是面向 Windows 的嵌入式开发 IDE。使用 Zephyr 或 PlatformIO 管理工程、编译、烧录并查看串口。">
+  <title>QYS RTOS — 从选板开始的嵌入式工作台</title>
+  <link rel="icon" href="assets/qys_v1_1.ico" sizes="any">
+  <link rel="apple-touch-icon" href="assets/qys_v1_1.png">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="QYS RTOS 首页">
+        <img src="assets/qys_v1_1.png" alt="" width="42" height="42">
+        <span class="brand-copy">
+          <strong>QYS <span>RTOS</span></strong>
+          <small>EMBEDDED WORKBENCH</small>
+        </span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="主导航">
+        <a href="#catalog">板卡目录</a>
+        <a href="#workflows">开发工作流</a>
+        <a href="#versions">版本下载</a>
+        <a href="https://github.com/Luarius/QYS-RTOS" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+
+      <a class="header-download" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.3/QYS-RTOS-1.3-Setup.exe">
+        下载 1.3
+      </a>
+
+      <details class="mobile-nav">
+        <summary aria-label="打开网站导航">
+          <span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>菜单</span>
+        </summary>
+        <nav aria-label="移动端导航">
+          <a href="#catalog">板卡目录</a>
+          <a href="#workflows">开发工作流</a>
+          <a href="#versions">版本下载</a>
+          <a href="https://github.com/Luarius/QYS-RTOS" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-grid container">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span>面向 Windows 的嵌入式 IDE</p>
+          <p class="release-pill"><span aria-hidden="true"></span>QYS RTOS 1.3 · 最新版本</p>
+          <h1 id="hero-title">从选板开始，<br>把开发留在<span>一张工作台</span></h1>
+          <p class="hero-description">用 Zephyr 管理 RTOS 工程，或通过 PlatformIO 创建普通单片机工程。编辑、编译、烧录、查看串口，在同一个项目界面里顺着完成。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.3/QYS-RTOS-1.3-Setup.exe">下载 QYS RTOS 1.3</a>
+            <a class="button button-secondary" href="https://github.com/Luarius/QYS-RTOS" target="_blank" rel="noopener noreferrer">查看 GitHub 源码</a>
+          </div>
+          <div class="hero-facts" aria-label="产品信息">
+            <span><b class="fact-dot" aria-hidden="true"></b>Windows 桌面程序</span>
+            <span><b class="fact-dot" aria-hidden="true"></b>Zephyr + PlatformIO</span>
+            <span><b class="fact-dot" aria-hidden="true"></b>MIT 许可</span>
+          </div>
+        </div>
+
+        <figure class="product-figure">
+          <div class="figure-topline">
+            <span class="figure-kicker">BOARD EXTENSION CENTER</span>
+            <span class="figure-label"><span aria-hidden="true"></span>QYS RTOS 1.3 实际界面</span>
+          </div>
+          <div class="product-shot-wrap">
+            <img class="product-shot" src="assets/extension-center.webp" alt="QYS RTOS 1.3 板卡扩展中心实际界面：顶部为搜索区域，左侧显示开发板目录列表，右侧显示所选板卡信息与操作区域。">
+          </div>
+          <figcaption>QYS RTOS 1.3 实际界面 · 板卡扩展中心</figcaption>
+          <details class="schematic-details">
+            <summary>展开查看流程示意</summary>
+            <p class="schematic-caption">以下为补充说明用的 CSS 示意，开发板家族与文案仅用于演示信息层级。</p>
+            <div class="app-window" aria-hidden="true">
+            <div class="window-titlebar">
+              <div class="window-controls"><i></i><i></i><i></i></div>
+              <div class="window-title">QYS RTOS <span>/</span> 板卡扩展中心</div>
+              <div class="window-context">普通单片机</div>
+            </div>
+            <div class="app-layout">
+              <aside class="app-rail">
+                <div class="rail-brand">Q</div>
+                <div class="rail-item"><span class="rail-glyph glyph-project"></span><small>工程</small></div>
+                <div class="rail-item rail-item-active"><span class="rail-glyph glyph-board"></span><small>板卡</small></div>
+                <div class="rail-item"><span class="rail-glyph glyph-terminal"></span><small>输出</small></div>
+                <div class="rail-spacer"></div>
+                <div class="rail-item"><span class="rail-glyph glyph-settings"></span><small>设置</small></div>
+              </aside>
+
+              <div class="catalog-pane">
+                <div class="mock-breadcrumb">普通单片机 <span>/</span> 板卡扩展</div>
+                <div class="mock-heading-row">
+                  <div>
+                    <p class="mock-overline">PLATFORMIO</p>
+                    <h2>发现开发板</h2>
+                  </div>
+                  <span class="mock-count">开发板目录</span>
+                </div>
+                <div class="mock-search"><span class="search-glyph"></span>搜索开发板或框架</div>
+                <div class="mock-filters"><span class="mock-filter active">全部</span><span class="mock-filter">本机可用</span><span class="mock-filter">已缓存</span></div>
+                <div class="board-list">
+                  <div class="mock-board selected">
+                    <span class="board-chip chip-cyan">ESP</span>
+                    <span class="board-copy"><b>ESP32 系列</b><small>按开发板选择框架</small></span>
+                    <span class="board-status status-selected">选择中</span>
+                  </div>
+                  <div class="mock-board">
+                    <span class="board-chip chip-blue">STM</span>
+                    <span class="board-copy"><b>STM32 系列</b><small>本机平台筛选可用</small></span>
+                    <span class="board-plus">＋</span>
+                  </div>
+                  <div class="mock-board">
+                    <span class="board-chip chip-violet">RP</span>
+                    <span class="board-copy"><b>RP2040 系列</b><small>目录缓存可离线浏览</small></span>
+                    <span class="board-plus">＋</span>
+                  </div>
+                </div>
+                <div class="mock-list-note"><span class="note-check">✓</span>板卡家族内容为示意</div>
+              </div>
+
+              <aside class="selection-pane">
+                <div class="selection-top">
+                  <span class="selection-icon"><span></span></span>
+                  <div><small>当前选择</small><b>ESP32 系列</b></div>
+                </div>
+                <div class="selection-divider"></div>
+                <p class="selection-label">开发框架</p>
+                <div class="mock-select">选择适用框架 <span class="chevron"></span></div>
+                <p class="selection-hint">框架选项随开发板目录提供</p>
+                <div class="package-line"><span>SDK 与工具链</span><b>按目标准备</b></div>
+                <div class="mock-install">下载支持包</div>
+                <div class="mock-create">创建工程</div>
+                <div class="selection-foot"><span></span>目录内容以实际环境为准</div>
+              </aside>
+            </div>
+            <div class="window-statusbar"><span class="status-square"></span>普通单片机工作台 <span class="status-separator">/</span> PlatformIO</div>
+            </div>
+          </details>
+          <span class="figure-orbit orbit-one" aria-hidden="true"></span>
+          <span class="figure-orbit orbit-two" aria-hidden="true"></span>
+        </figure>
+      </div>
+      <div class="hero-baseline container" aria-hidden="true"><span>BUILD</span><i></i><span>FLASH</span><i></i><span>MONITOR</span></div>
+    </section>
+
+    <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+      <div class="container">
+        <div class="catalog-intro">
+          <div>
+            <p class="eyebrow eyebrow-light">QYS RTOS 1.3 · PLATFORMIO</p>
+            <h2 id="catalog-title">从开发板目录，<br><span>更快进入工程</span></h2>
+          </div>
+          <p class="catalog-summary">搜索 PlatformIO 开发板目录，按目标板和框架准备 SDK 与工具链，然后从选中的开发板建立工程。板卡扩展中心让环境准备从第一步就跟着项目走。</p>
+        </div>
+
+        <ol class="workflow-list">
+          <li>
+            <span class="step-number">01</span>
+            <div><h3>搜索目标板</h3><p>按名称查找开发板，也可筛选本机已有的平台支持。</p></div>
+            <span class="step-rule" aria-hidden="true"></span>
+          </li>
+          <li>
+            <span class="step-number">02</span>
+            <div><h3>选择框架与支持包</h3><p>根据目标板与框架下载所需 SDK、工具链和板卡支持内容。</p></div>
+            <span class="step-rule" aria-hidden="true"></span>
+          </li>
+          <li>
+            <span class="step-number">03</span>
+            <div><h3>建立工程并继续开发</h3><p>从所选板卡创建工程，在工作台中编译、烧录和查看串口。</p></div>
+            <span class="step-rule" aria-hidden="true"></span>
+          </li>
+        </ol>
+
+        <div class="catalog-footer">
+          <div class="cache-note"><span class="cache-icon" aria-hidden="true"><i></i><i></i></span><p><strong>目录缓存可离线浏览。</strong><br>SDK、工具链和板卡支持内容仍按目标板与框架下载；目录可按本机平台筛选。</p></div>
+          <div class="family-samples"><span>示例家族</span><b>ESP32</b><b>STM32</b><b>AVR</b><b>RP2040</b><b>8051</b></div>
+        </div>
+        <p class="compatibility-note">可用板卡范围取决于 PlatformIO 官方目录与当前 Zephyr 环境。驱动、烧录工具和探针要求因开发板而异。</p>
+      </div>
+    </section>
+
+    <section class="workflows-section" id="workflows" aria-labelledby="workflows-title">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">ONE WORKBENCH, TWO FLOWS</p>
+          <h2 id="workflows-title">同一个工作台，<br><span>照顾两种工程路径</span></h2>
+          <p>按项目选择 RTOS 工程或普通单片机工程，常用开发动作留在熟悉的桌面环境里。</p>
+        </div>
+
+        <div class="workbench-paths">
+          <article class="path-column path-zephyr">
+            <div class="path-topline"><span class="path-symbol symbol-zephyr" aria-hidden="true">Z</span><span>RTOS PROJECTS</span></div>
+            <h3>Zephyr 工程</h3>
+            <p>创建或打开 Zephyr 项目，编辑代码，调用 west 编译与烧录，并在需要时查看设备树和串口输出。</p>
+            <ul>
+              <li>按开发板管理构建目录</li>
+              <li>设备树与 overlay 辅助</li>
+              <li>串口监视与工程输出</li>
+            </ul>
+            <div class="path-footnote"><span>环境工具</span><b>west · Zephyr SDK</b></div>
+          </article>
+
+          <article class="path-column path-platformio">
+            <div class="path-topline"><span class="path-symbol symbol-platformio" aria-hidden="true">P</span><span>MICROCONTROLLER PROJECTS</span></div>
+            <h3>普通单片机工程</h3>
+            <p>使用 PlatformIO 创建或打开工程，选择构建环境后进行独立的编译与烧录。</p>
+            <ul>
+              <li>按板卡下载支持包</li>
+              <li>目录缓存可离线浏览</li>
+              <li>面向不同板卡选择下载方式</li>
+            </ul>
+            <div class="path-footnote"><span>环境工具</span><b>PlatformIO Core</b></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="version-section" id="versions" aria-labelledby="versions-title">
+      <div class="container version-container">
+        <div class="version-heading">
+          <div>
+            <p class="eyebrow">RELEASES</p>
+            <h2 id="versions-title">版本与下载</h2>
+          </div>
+          <p>选择适合的 Windows 安装包。1.3 为当前新版，1.2 和 1.1 为历史版本。</p>
+        </div>
+
+        <div class="release-list">
+          <article class="release-row release-current">
+            <div class="release-version"><span class="version-number">1.3</span><span class="version-badge">新版</span></div>
+            <div class="release-details">
+              <h3>可搜索的 PlatformIO 开发板目录</h3>
+              <p>按开发板与框架准备 SDK、工具链并创建工程；支持筛选本机平台，目录缓存可离线浏览。保留原有 3 个模板。</p>
+            </div>
+            <a class="release-download" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.3/QYS-RTOS-1.3-Setup.exe">下载 1.3 安装包</a>
+          </article>
+
+          <article class="release-row">
+            <div class="release-version"><span class="version-number">1.2</span><span class="history-badge">历史版本</span></div>
+            <div class="release-details">
+              <h3>普通单片机工作台</h3>
+              <p>增加 ESP32-S3、STM32F103C8T6、STC89C52RC 三个工程模板，并提供独立的 PlatformIO 编译与烧录流程。</p>
+            </div>
+            <a class="release-download release-download-history" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.2/QYS-RTOS-1.2-Setup.exe">下载 1.2 安装包</a>
+          </article>
+
+          <article class="release-row">
+            <div class="release-version"><span class="version-number">1.1</span><span class="history-badge">历史版本</span></div>
+            <div class="release-details">
+              <h3>Zephyr 工程工作台</h3>
+              <p>提供 Zephyr 工程、设备树辅助和串口监视，并可自行配置兼容的第三方 AI 模型。</p>
+            </div>
+            <a class="release-download release-download-history" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.1/QYS-RTOS-Setup.exe">下载 1.1 安装包</a>
+          </article>
+        </div>
+
+        <p class="download-footnote">各版本安装包由 GitHub Releases 提供。SDK、工具链和板卡支持内容按目标板及选定框架下载，具体要求以实际环境为准。</p>
+      </div>
+    </section>
+
+    <section class="closing-section" aria-labelledby="closing-title">
+      <div class="container closing-inner">
+        <div>
+          <p class="eyebrow eyebrow-light">OPEN SOURCE · WINDOWS IDE</p>
+          <h2 id="closing-title">准备好下一块板卡时，<br><span>从 QYS RTOS 开始。</span></h2>
+        </div>
+        <div class="closing-actions">
+          <a class="button button-light" href="https://github.com/Luarius/QYS-RTOS/releases/download/v1.3/QYS-RTOS-1.3-Setup.exe">下载最新版 1.3</a>
+          <a class="closing-source" href="https://github.com/Luarius/QYS-RTOS" target="_blank" rel="noopener noreferrer">在 GitHub 查看源码</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="footer-brand" href="#top"><img src="assets/qys_v1_1.png" alt="" width="32" height="32"><span>QYS RTOS</span></a>
+      <p>面向嵌入式开发者的 Windows 工作台</p>
+      <div class="footer-links"><a href="https://github.com/Luarius/QYS-RTOS" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/Luarius/QYS-RTOS/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a><a href="#versions">版本下载</a></div>
+      <span class="copyright">© 2026 QYS RTOS contributors</span>
+    </div>
+  </footer>
+</body>
+</html>
