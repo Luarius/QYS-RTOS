@@ -30,6 +30,13 @@ def legacy_config_dir() -> Path:
     return Path(os.environ.get("APPDATA") or Path.home()) / "QYS RTOS"
 
 
+def previous_config_dirs() -> tuple[Path, ...]:
+    if os.environ.get("QYS_CONFIG_HOME"):
+        return ()
+    legacy = legacy_config_dir()
+    return (legacy.with_name("QYS RTOS 1.2"), legacy)
+
+
 def settings_path() -> Path:
     override = os.environ.get("QYS_CONFIG_HOME")
     base = Path(override) if override else legacy_config_dir().with_name(f"QYS RTOS {__version__}")
@@ -39,8 +46,9 @@ def settings_path() -> Path:
 def load_settings(path: Path | None = None) -> AppSettings:
     if path is None:
         path = settings_path()
-        if not path.exists() and not os.environ.get("QYS_CONFIG_HOME"):
-            path = legacy_config_dir() / "settings.json"
+        if not path.exists():
+            path = next((directory / path.name for directory in previous_config_dirs()
+                         if (directory / path.name).is_file()), path)
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(document, dict):

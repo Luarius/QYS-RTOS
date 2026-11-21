@@ -51,4 +51,10 @@ QProgressBar::chunk { background: #4d9dff; border-radius: 4px; }
 QScrollBar:vertical { background: #111a24; width: 10px; margin: 0; }
 QScrollBar::handle:vertical { background: #3c5266; border-radius: 5px; min-height: 24px; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QLabel#catalogTitle { font-size: 23px; font-weight: 700; color: #f2f7ff; }
+QLabel#catalogBoardTitle { font-size: 17px; font-weight: 650; color: #f2f7ff; }
+QTreeWidget#catalogBoards { alternate-background-color: #18232f; }
+QTreeWidget#catalogBoards::item { padding: 4px 7px; }
+QTreeWidget#catalogBoards::item:selected { background: #265477; color: #f0f6ff; }
+QHeaderView::section { background: #202d3b; color: #9db6cc; border: 0; border-bottom: 1px solid #2b4054; padding: 7px 10px; }
 """

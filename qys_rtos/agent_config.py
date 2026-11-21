@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from .config import legacy_config_dir, settings_path
+from .config import previous_config_dirs, settings_path
 
 
 class AgentConfigError(Exception):
@@ -92,10 +92,11 @@ def save_agent_config(config: AgentConfig, path: Path | None = None) -> None:
 def load_agent_config(path: Path | None = None) -> AgentConfig:
     if path is None:
         path = agent_config_path()
-        legacy = legacy_config_dir() / "agent.json"
-        if not path.exists() and not os.environ.get("QYS_CONFIG_HOME"):
-            if legacy.is_file():
-                config = load_agent_config(legacy)
+        if not path.exists():
+            previous = next((directory / path.name for directory in previous_config_dirs()
+                             if (directory / path.name).is_file()), None)
+            if previous is not None:
+                config = load_agent_config(previous)
                 try:
                     save_agent_config(config, path)
                 except OSError as exc:

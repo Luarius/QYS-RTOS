@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .bootstrap import refreshed_windows_environment
+from .config import previous_config_dirs, settings_path
 from .project import ProjectError
 
 
@@ -36,7 +37,9 @@ class BoardExtension:
             lines.append(f"framework = {self.framework}")
         if self.uploader_package:
             lines.append(f"platform_packages = {self.uploader_package}")
-        lines.extend((f"upload_protocol = {self.upload_protocol}", "monitor_speed = 115200"))
+        if self.upload_protocol:
+            lines.append(f"upload_protocol = {self.upload_protocol}")
+        lines.append("monitor_speed = 115200")
         return "\n".join(lines) + "\n"
 
 
@@ -171,6 +174,25 @@ def create_board_project(destination: Path, extension: BoardExtension) -> Path:
             (staged / "platformio.ini").write_text(extension.project_config(), encoding="utf-8")
             (staged / ".gitignore").write_text(".pio/\n", encoding="utf-8")
             (staged / "src" / extension.filename).write_text(extension.source, encoding="utf-8")
+            if extension.framework == "espidf":
+                (staged / "CMakeLists.txt").write_text(
+                    'cmake_minimum_required(VERSION 3.16)\n'
+                    'include($ENV{IDF_PATH}/tools/cmake/project.cmake)\nproject(qys_app)\n',
+                    encoding="utf-8",
+                )
+                (staged / "src" / "CMakeLists.txt").write_text(
+                    f'idf_component_register(SRCS "{extension.filename}" INCLUDE_DIRS ".")\n',
+                    encoding="utf-8",
+                )
+            elif extension.framework == "zephyr":
+                (staged / "zephyr").mkdir()
+                (staged / "zephyr" / "prj.conf").write_text("CONFIG_PRINTK=y\n", encoding="utf-8")
+                (staged / "zephyr" / "CMakeLists.txt").write_text(
+                    'cmake_minimum_required(VERSION 3.20.0)\n'
+                    'find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})\nproject(qys_app)\n'
+                    f'target_sources(app PRIVATE ../src/{extension.filename})\n',
+                    encoding="utf-8",
+                )
             if os.path.lexists(target):
                 raise BoardSupportError(f"文件夹已存在：{target}")
             staged.rename(target)
@@ -203,7 +225,9 @@ def find_core(settings_dir: Path, preferred: str = "") -> Path | None:
     core_dir = Path(os.environ.get("PLATFORMIO_CORE_DIR") or Path.home() / ".platformio")
     standard = Path.home() / ".platformio"
     executable = Path("Scripts", "pio.exe") if os.name == "nt" else Path("bin", "pio")
-    candidates = (managed, core_dir / "penv" / executable, standard / "penv" / executable)
+    migrated = tuple(managed_core_paths(previous)[1] for previous in previous_config_dirs()
+                     if settings_dir == settings_path().parent)
+    candidates = (managed, *migrated, core_dir / "penv" / executable, standard / "penv" / executable)
     for candidate in candidates:
         if candidate.is_file():
             return candidate.resolve()
@@ -257,7 +281,7 @@ def parse_project_config(output: str) -> tuple[PioEnvironment, ...]:
 
 def upload_port_for(environment: PioEnvironment, selected_port: str) -> str:
     """Resolve a serial target explicitly and let debugger protocols find their probe."""
-    if environment.uses_probe:
+    if environment.uses_probe or not environment.protocol:
         return ""
     if environment.protocol in _SERIAL_PROTOCOLS:
         port = selected_port or environment.upload_port

@@ -4,6 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[软件官网](https://luarius.github.io/QYS-RTOS/) · [版本下载](https://github.com/Luarius/QYS-RTOS/releases)
+
 ## 项目简介
 
 QYS RTOS 在同一个窗口提供 **Zephyr 工程** 和 **普通单片机** 两个工作台。Zephyr 工程由 west 和 Zephyr SDK 构建、烧录。普通单片机工程由 PlatformIO Core 管理工具链、构建和烧录。
@@ -14,7 +16,7 @@ QYS RTOS 在同一个窗口提供 **Zephyr 工程** 和 **普通单片机** 两�
 
 - **Zephyr 工程管理**：创建模板工程、打开已有工程、浏览和编辑源码。
 - **编译与烧录**：调用当前工作区的 west 和目标板工具链，保留按开发板区分的构建目录。
-- **普通单片机工作台**可按需下载板卡支持包，新建或打开 PlatformIO 工程，按选定的构建环境编译、烧录和监视串口。
+- **板卡扩展中心**可搜索 PlatformIO 目录、查看本机平台、选择框架和下载对应支持包。普通单片机工作台可新建或打开 PlatformIO 工程，并完成编译、烧录和串口监视。
 - **串口监视**：查看启动日志、应用输出和编译/烧录过程中的端口信息。
 - **设备树辅助**：查看最近一次构建生成的设备树，并生成 overlay 配置预览。
 - **环境引导**：检查 Python、Git、west、Zephyr 工作区和 SDK，辅助安装缺失的前置工具。
@@ -25,7 +27,7 @@ QYS RTOS 在同一个窗口提供 **Zephyr 工程** 和 **普通单片机** 两�
 
 ### 下载安装包
 
-从 [GitHub Releases](https://github.com/Luarius/QYS-RTOS/releases) 下载已发布版本的 `QYS-RTOS-Setup.exe`，安装后启动 QYS RTOS。若发布页暂无附件，安装包仍待上传。软件安装包不包含 Zephyr SDK；首次使用请打开右上角的“环境引导”，或者在“环境设置”中选择已有的 Zephyr 工作区、west 和 SDK。
+从 [GitHub Releases](https://github.com/Luarius/QYS-RTOS/releases) 下载对应版本的 Windows 安装包。安装后可通过“环境引导”下载 Zephyr 环境，或者在“环境设置”中选择已有的 Zephyr 工作区、west 和 SDK。
 
 ### 从源码运行
 
@@ -44,10 +46,10 @@ python run_app.py
 
 ```powershell
 python -m pip install -r requirements-build.txt
-.\scripts\build.ps1 -DistRoot .\release\QYS-RTOS-1.2-build
+.\scripts\build.ps1 -DistRoot .\release\QYS-RTOS-1.3-build
 python .\scripts\create_installer.py `
-  ".\release\QYS-RTOS-1.2-build\QYS RTOS" `
-  ".\release\QYS-RTOS-1.2-build\installer\QYS-RTOS-1.2-Setup.exe" `
+  ".\release\QYS-RTOS-1.3-build\QYS RTOS" `
+  ".\release\QYS-RTOS-1.3-build\installer\QYS-RTOS-1.3-Setup.exe" `
   --compiler "C:\Program Files (x86)\NSIS\makensis.exe"
 ```
 
@@ -57,7 +59,7 @@ QYS RTOS 是一个 Windows 桌面程序，用于打开和创建 Zephyr 工程、
 
 ## 安装与首次使用
 
-运行 `QYS-RTOS-Setup.exe` 并按提示安装，然后从开始菜单或桌面打开 QYS RTOS。安装软件本身不包含 Zephyr SDK；另一台电脑首次使用时，打开右上角的 **环境引导**，按向导检查前置工具，选择一个新的空工作区并启动联网安装。也可以通过 **环境设置** 选择电脑上已有的 Zephyr 工作区、west 和 SDK。
+运行对应版本的 `Setup.exe` 并按提示安装，然后从开始菜单或桌面打开 QYS RTOS。另一台电脑首次使用时，打开右上角的 **环境引导**，按向导检查前置工具，选择一个新的空工作区并启动联网安装。也可以通过 **环境设置** 选择电脑上已有的 Zephyr 工作区、west 和 SDK。
 
 环境引导默认安装 ARM 和 RISC-V 工具链，也可以选择全部架构。源码、模块和 SDK 的下载可能需要较长时间和较多磁盘空间。向导会先检查 GitHub 连接；如果提示本机代理不可用，请检查代理程序和 Git 代理设置，再重新尝试。向导不会自动修改代理设置。
 
@@ -80,9 +82,12 @@ Windows 上优先使用 Python 3.12。安装向导会检测常用前置工具，
 ## 普通单片机工作台
 
 1. 点击窗口顶部的 **普通单片机**。软件会检测已有的 PlatformIO Core。也可以在 Core 菜单手动选择 `pio.exe`，或使用已安装的 Python 3.12 及以上版本联网安装 Core。
-2. 打开 **板卡扩展**，选中型号后点击 **下载支持包**，在输出区查看工具链和烧录器的下载进度。
-3. 点击 **新建普通工程**，选择板型和新目录。也可以打开已有的 `platformio.ini` 工程，在 **构建环境** 中选择目标。已有工程可使用其 PlatformIO 配置支持的板卡。
-4. 点击 **编译** 生成固件。点击 **烧录普通板卡**，确认板型、环境和目标后写入。使用串口烧录时先选 COM 口，使用 ST-Link 时接好 SWD。
+2. 打开 **板卡扩展中心**，点击 **刷新在线目录**。按型号、芯片、平台或框架搜索，也可切换到 **本机平台** 或 **内置模板**。最近成功读取的在线目录会缓存，离线时仍可浏览。
+3. 选择开发板和它支持的框架，点击 **下载支持包**。PlatformIO 会根据所选组合下载开发平台，以及该平台声明的工具链和框架依赖。部分上传工具可能在首次编译或烧录时再下载。
+4. 点击 **新建工程** 生成项目骨架，也可打开已有的 `platformio.ini` 工程。Arduino、ESP-IDF、Zephyr 等模板生成对应入口文件。需要特定厂商配置或 SDK 示例的工程，可在现有项目基础上继续配置。
+5. 点击 **编译** 生成固件。点击 **烧录普通板卡**，确认板型、环境和烧录目标后写入。已明确配置为串口烧录的工程可在工作台选择 COM 口，使用 ST-Link 时接好 SWD。目录板型默认由 PlatformIO 选择烧录目标，需要指定端口时可在 `platformio.ini` 中填写 `upload_port`。
+
+目录显示 PlatformIO Core 提供的板卡列表，实际可用的框架、版本和驱动随板型变化。比如 `esp32-c6-devkitc-1` 在当前 PlatformIO 目录中使用 ESP-IDF；通过 west 开发时，应在 **Zephyr 工程** 中选用对应的 Zephyr 目标。上述列表里的 **已有** 表示本机平台提供该板型，项目所需依赖由 PlatformIO 在下载和构建时确认。
 
 | 板卡模板 | 示例 | 烧录方式 |
 | --- | --- | --- |
@@ -90,7 +95,7 @@ Windows 上优先使用 Python 3.12。安装向导会检测常用前置工具，
 | STM32F103C8T6 Blue Pill | STM32Cube HAL 翻转 PC13 | ST-Link / SWD |
 | STC89C52RC | SDCC 翻转 P1.0 | stcgal 串口，按提示给目标板重新上电 |
 
-1.2 的安装目录、快捷方式和设置独立命名。新版首次启动时可读取旧版的 Zephyr 设置，并将之后的更改写入新版设置目录。
+1.3 使用独立的安装目录、快捷方式和设置目录。首次启动时优先载入 1.2 设置，也能从 1.1 的设置开始。
 
 ## 使用 AI Agent
 

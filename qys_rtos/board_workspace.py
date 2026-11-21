@@ -16,8 +16,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
+from .board_catalog_dialog import BoardCatalogDialog
 from .board_support import (
-    BOARD_EXTENSIONS, BoardExtension, BoardSupportError, PioEnvironment, config_command,
+    BoardExtension, BoardSupportError, PioEnvironment, config_command,
     create_board_project, extension_install_command, find_core, managed_core_paths,
     parse_project_config, pio_environment, run_command, upload_port_for,
     validate_board_project,
@@ -99,7 +100,7 @@ class BoardWorkspace(QWidget):
         core_menu.addAction("选择 pio.exe…", self._choose_core)
         core_menu.addAction("安装 PlatformIO Core…", self._install_core)
         self.core_button.setMenu(core_menu)
-        self.extensions_button = QPushButton("板卡扩展…")
+        self.extensions_button = QPushButton("板卡扩展中心")
         self.new_button = QPushButton("＋  新建普通工程")
         self.open_button = QPushButton("打开普通工程")
         header.addWidget(self.core_button)
@@ -214,51 +215,24 @@ class BoardWorkspace(QWidget):
         self._notice(message)
         QMessageBox.warning(self, title, message)
 
-    def _choose_extension(self, *, install: bool) -> BoardExtension | None:
-        dialog = QDialog(self)
-        dialog.setWindowTitle("板卡扩展" if install else "新建普通单片机工程")
-        dialog.setMinimumWidth(490)
-        layout = QVBoxLayout(dialog)
-        layout.setContentsMargins(18, 16, 18, 16)
-        layout.setSpacing(12)
-        combo = QComboBox()
-        combo.setAccessibleName("板卡支持包")
-        combo.addItems([extension.title for extension in BOARD_EXTENSIONS])
-        detail = QLabel()
-        detail.setMinimumHeight(65)
-        detail.setTextFormat(Qt.TextFormat.PlainText)
-        detail.setWordWrap(True)
-
-        def show_board(index: int) -> None:
-            entry = BOARD_EXTENSIONS[index]
-            detail.setText(f"{entry.description}\n{entry.platform}")
-
-        combo.currentIndexChanged.connect(show_board)
-        current = self._environment()
-        if current and current.extension:
-            combo.setCurrentIndex(BOARD_EXTENSIONS.index(current.extension))
-        show_board(combo.currentIndex())
-        layout.addWidget(combo)
-        layout.addWidget(detail)
-        buttons = QHBoxLayout()
-        buttons.addStretch(1)
-        cancel = QPushButton("取消")
-        cancel.clicked.connect(dialog.reject)
-        accept = QPushButton("下载支持包" if install else "继续")
-        accept.setObjectName("primaryButton")
-        accept.clicked.connect(dialog.accept)
-        accept.setDefault(True)
-        buttons.addWidget(cancel)
-        buttons.addWidget(accept)
-        layout.addLayout(buttons)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            return BOARD_EXTENSIONS[combo.currentIndex()]
-        return None
-
     def _show_extensions(self) -> None:
-        extension = self._choose_extension(install=True)
-        if extension:
-            self.install_extension(extension)
+        self._open_catalog("install")
+
+    def _open_catalog(self, default_action: str) -> None:
+        if self.busy:
+            return
+        current = self._environment()
+        dialog = BoardCatalogDialog(self.core, self.config_dir / "board-catalog.json",
+                                    selected_board=current.board if current else "",
+                                    default_action=default_action, parent=self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            if dialog.action == "core":
+                self._install_core()
+            elif dialog.extension and dialog.action == "new":
+                self._create_project_for(dialog.extension)
+            elif dialog.extension and dialog.action == "install":
+                self.install_extension(dialog.extension)
+        dialog.deleteLater()
 
     def install_extension(self, extension: BoardExtension) -> None:
         if self.busy or not self._require_core():
@@ -283,9 +257,9 @@ class BoardWorkspace(QWidget):
             self._notice(f"无法清理下载临时目录：{exc}")
 
     def new_project(self) -> None:
-        extension = self._choose_extension(install=False)
-        if extension is None:
-            return
+        self._open_catalog("new")
+
+    def _create_project_for(self, extension: BoardExtension) -> None:
         start = self.editor.project_root.parent if self.editor.project_root else Path.home()
         parent = QFileDialog.getExistingDirectory(self, "选择新工程的上级文件夹", str(start))
         if not parent:
