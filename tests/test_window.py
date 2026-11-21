@@ -64,6 +64,22 @@ class MainWindowTests(unittest.TestCase):
         self.assertNotEqual(first, second)
         self.assertEqual(first.parent, base / "build_qys")
 
+    def test_zephyr_queued_flash_is_cancelled_by_stop(self):
+        with patch.object(MainWindow, "_restore_environment", return_value=None):
+            window = MainWindow()
+        try:
+            window._flash_after_build = True
+            window._operation_state_changed(False)
+            window.stop_button.click()
+            self.assertFalse(window._flash_after_build)
+            window.environment = object()
+            with patch.object(window, "refresh_runners") as prepare:
+                window._start_flash()
+            prepare.assert_not_called()
+        finally:
+            window.environment = None
+            window.close()
+
     def test_agent_dock_disables_project_controls_during_task(self):
         with patch("qys_rtos.window.QTimer.singleShot"):
             window = MainWindow()

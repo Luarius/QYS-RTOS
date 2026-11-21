@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 
 from PySide6.QtCore import (
     QDir,
@@ -182,7 +182,7 @@ class _SyntaxHighlighter(QSyntaxHighlighter):
         file_name = file_name.casefold()
         if suffix in {".dts", ".dtsi", ".overlay"}:
             return "dts"
-        if suffix in {".conf", ".config", ".kconfig"} or file_name == "kconfig":
+        if suffix in {".conf", ".config", ".ini", ".kconfig"} or file_name == "kconfig":
             return "config"
         if suffix == ".cmake" or file_name == "cmakelists.txt":
             return "cmake"
@@ -291,10 +291,16 @@ class EditorWorkspace(QWidget):
     file_saved = Signal(str)
     status_changed = Signal(str)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self, parent: QWidget | None = None, *,
+        project_validator: Callable[[str | Path], Path] = validate_project,
+        start_files: tuple[str, ...] = ("src/main.c",),
+    ) -> None:
         super().__init__(parent)
         self._project_root: Path | None = None
         self._documents: dict[Path, _OpenDocument] = {}
+        self._project_validator = project_validator
+        self._start_files = start_files
 
         self._file_model = QFileSystemModel(self)
         self._file_model.setFilter(
@@ -394,13 +400,13 @@ class EditorWorkspace(QWidget):
     def set_project(self, root: str | Path) -> bool:
         """Switch the tree root, retaining the current project if the user cancels."""
         try:
-            project_root = validate_project(root)
+            project_root = self._project_validator(root)
         except (OSError, RuntimeError, TypeError, ValueError, ProjectError) as exc:
             self._show_error("无法打开工程文件夹", str(root), exc)
             return False
 
         if project_root != self._project_root:
-            if not self._confirm_close_all():
+            if not self.confirm_close_all():
                 return False
             self._clear_open_tabs()
             self._project_root = project_root
@@ -410,10 +416,15 @@ class EditorWorkspace(QWidget):
         self._tree.setRootIndex(self._tree_filter.mapFromSource(source_root))
         self.status_changed.emit(f"已打开工程：{project_root}")
 
-        main_file = project_root / "src" / "main.c"
-        if main_file.is_file():
-            return self.open_file(main_file)
+        for filename in self._start_files:
+            main_file = project_root / filename
+            if main_file.is_file():
+                self.open_file(main_file)
+                break
         return True
+
+    def set_save_shortcut_enabled(self, enabled: bool) -> None:
+        self._save_shortcut.setEnabled(enabled)
 
     def open_file(self, path: str | Path) -> bool:
         try:
@@ -518,7 +529,7 @@ class EditorWorkspace(QWidget):
             return False
 
     def close_all(self) -> bool:
-        if not self._confirm_close_all():
+        if not self.confirm_close_all():
             return False
         self._clear_open_tabs()
         self.status_changed.emit("已关闭全部文件")
@@ -557,7 +568,7 @@ class EditorWorkspace(QWidget):
         self.status_changed.emit(f"已保存：{document.path}")
         return True
 
-    def _confirm_close_all(self) -> bool:
+    def confirm_close_all(self) -> bool:
         for document in tuple(self._documents.values()):
             if not document.editor.document().isModified():
                 continue

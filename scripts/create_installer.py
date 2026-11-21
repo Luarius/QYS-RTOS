@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import runpy
 import subprocess
 from pathlib import Path
+
+APP_VERSION = runpy.run_path(str(Path(__file__).resolve().parents[1] / "qys_rtos" / "__init__.py"))["__version__"]
+APP_NAME = f"QYS RTOS {APP_VERSION}"
 
 
 def nsis_literal(value: str) -> str:
@@ -39,24 +43,27 @@ def create_script(app_dir: Path, output: Path, icon: Path, qa_target: Path | Non
     source = nsis_literal(str(app_dir / "*"))
     output_path = nsis_literal(str(output.resolve()))
     icon_path = nsis_literal(str(icon.resolve()))
+    resource_version = ".".join([*APP_VERSION.split("."), "0", "0", "0"][:4])
+    install_marker = f"qys-installed-{APP_VERSION}.txt"
+    uninstall_key = f"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{APP_NAME}"
     if qa_target is not None:
         install_dir = nsis_literal(str(qa_target.resolve()))
         qa_define = '!define QYS_QA_MODE\n'
     else:
-        install_dir = "$LOCALAPPDATA\\Programs\\QYS RTOS"
+        install_dir = f"$LOCALAPPDATA\\Programs\\{APP_NAME}"
         qa_define = ""
     return f'''Unicode True
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
-{qa_define}Name "QYS RTOS"
+{qa_define}Name "{APP_NAME}"
 OutFile "{output_path}"
 InstallDir "{install_dir}"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
-VIProductVersion "1.1.0.0"
+VIProductVersion "{resource_version}"
 VIAddVersionKey "ProductName" "QYS RTOS"
 VIAddVersionKey "FileDescription" "QYS RTOS Windows Setup"
-VIAddVersionKey "FileVersion" "1.1"
+VIAddVersionKey "FileVersion" "{APP_VERSION}"
 VIAddVersionKey "LegalCopyright" "See THIRD_PARTY_NOTICES.txt"
 !define MUI_ICON "{icon_path}"
 !define MUI_ABORTWARNING
@@ -69,33 +76,67 @@ VIAddVersionKey "LegalCopyright" "See THIRD_PARTY_NOTICES.txt"
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "SimpChinese"
 
+Var QysDirHandle
+Var QysDirEntry
+
 Function .onVerifyInstDir
-  IfFileExists "$INSTDIR\\*.*" 0 valid_folder
-  IfFileExists "$INSTDIR\\QYS RTOS.exe" valid_folder 0
-  Abort
-  valid_folder:
+  Call VerifyInstallDirectory
 FunctionEnd
 
-Section "QYS RTOS"
+Function VerifyInstallDirectory
+  IfFileExists "$INSTDIR\\{install_marker}" valid_folder verify_empty
+  verify_empty:
+    ClearErrors
+    FindFirst $QysDirHandle $QysDirEntry "$INSTDIR\\*"
+    IfErrors valid_folder
+  inspect_entry:
+    StrCmp $QysDirEntry "." next_entry
+    StrCmp $QysDirEntry ".." next_entry
+    FindClose $QysDirHandle
+    Goto invalid_folder
+  next_entry:
+    ClearErrors
+    FindNext $QysDirHandle $QysDirEntry
+    IfErrors 0 inspect_entry
+    FindClose $QysDirHandle
+    Goto valid_folder
+  invalid_folder:
+    Abort
+  valid_folder:
+    ClearErrors
+FunctionEnd
+
+Section "{APP_NAME}"
+  Call VerifyInstallDirectory
   SetShellVarContext current
   SetOutPath "$INSTDIR"
+  ClearErrors
+  FileOpen $0 "$INSTDIR\\{install_marker}" w
+  IfErrors marker_error
+  FileWrite $0 "{APP_VERSION}"
+  FileClose $0
+  IfErrors marker_error
+  Goto install_files
+  marker_error:
+    Abort
+  install_files:
   File /r "{source}"
   WriteUninstaller "$INSTDIR\\Uninstall QYS RTOS.exe"
 !ifndef QYS_QA_MODE
-    WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "DisplayName" "QYS RTOS"
-    WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "DisplayVersion" "1.1"
-    WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "DisplayIcon" "$INSTDIR\\QYS RTOS.exe"
-    WriteRegStr HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "UninstallString" '"$INSTDIR\\Uninstall QYS RTOS.exe"'
-    WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "NoModify" 1
-    WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "NoRepair" 1
-    CreateDirectory "$SMPROGRAMS\\QYS RTOS"
-    IfFileExists "$SMPROGRAMS\\QYS RTOS\\QYS RTOS.lnk" skip_startmenu
-    CreateShortcut "$SMPROGRAMS\\QYS RTOS\\QYS RTOS.lnk" "$INSTDIR\\QYS RTOS.exe"
-    WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "StartShortcutCreated" 1
+    WriteRegStr HKCU "{uninstall_key}" "DisplayName" "{APP_NAME}"
+    WriteRegStr HKCU "{uninstall_key}" "DisplayVersion" "{APP_VERSION}"
+    WriteRegStr HKCU "{uninstall_key}" "DisplayIcon" "$INSTDIR\\QYS RTOS.exe"
+    WriteRegStr HKCU "{uninstall_key}" "UninstallString" '"$INSTDIR\\Uninstall QYS RTOS.exe"'
+    WriteRegDWORD HKCU "{uninstall_key}" "NoModify" 1
+    WriteRegDWORD HKCU "{uninstall_key}" "NoRepair" 1
+    CreateDirectory "$SMPROGRAMS\\{APP_NAME}"
+    IfFileExists "$SMPROGRAMS\\{APP_NAME}\\{APP_NAME}.lnk" skip_startmenu
+    CreateShortcut "$SMPROGRAMS\\{APP_NAME}\\{APP_NAME}.lnk" "$INSTDIR\\QYS RTOS.exe"
+    WriteRegDWORD HKCU "{uninstall_key}" "StartShortcutCreated" 1
     skip_startmenu:
-    IfFileExists "$DESKTOP\\QYS RTOS.lnk" skip_desktop
-    CreateShortcut "$DESKTOP\\QYS RTOS.lnk" "$INSTDIR\\QYS RTOS.exe"
-    WriteRegDWORD HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "DesktopShortcutCreated" 1
+    IfFileExists "$DESKTOP\\{APP_NAME}.lnk" skip_desktop
+    CreateShortcut "$DESKTOP\\{APP_NAME}.lnk" "$INSTDIR\\QYS RTOS.exe"
+    WriteRegDWORD HKCU "{uninstall_key}" "DesktopShortcutCreated" 1
     skip_desktop:
 !endif
 SectionEnd
@@ -103,18 +144,19 @@ SectionEnd
 Section "Uninstall"
   SetShellVarContext current
 !ifndef QYS_QA_MODE
-    ReadRegDWORD $0 HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "DesktopShortcutCreated"
+    ReadRegDWORD $0 HKCU "{uninstall_key}" "DesktopShortcutCreated"
     ${{If}} $0 == 1
-      Delete "$DESKTOP\\QYS RTOS.lnk"
+      Delete "$DESKTOP\\{APP_NAME}.lnk"
     ${{EndIf}}
-    ReadRegDWORD $0 HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS" "StartShortcutCreated"
+    ReadRegDWORD $0 HKCU "{uninstall_key}" "StartShortcutCreated"
     ${{If}} $0 == 1
-      Delete "$SMPROGRAMS\\QYS RTOS\\QYS RTOS.lnk"
+      Delete "$SMPROGRAMS\\{APP_NAME}\\{APP_NAME}.lnk"
     ${{EndIf}}
-    RMDir "$SMPROGRAMS\\QYS RTOS"
-    DeleteRegKey HKCU "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\QYS RTOS"
+    RMDir "$SMPROGRAMS\\{APP_NAME}"
+    DeleteRegKey HKCU "{uninstall_key}"
 !endif
 {delete_block}
+  Delete "$INSTDIR\\{install_marker}"
   Delete "$INSTDIR\\Uninstall QYS RTOS.exe"
   RMDir "$INSTDIR"
 SectionEnd

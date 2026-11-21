@@ -139,8 +139,9 @@ class SerialPanel(QWidget):
 
     connection_changed = Signal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, zephyr_diagnostics: bool = True):
         super().__init__(parent)
+        self._zephyr_diagnostics = zephyr_diagnostics
         self._serial: serial.Serial | None = None
         self._decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
         self.timer = QTimer(self)
@@ -165,6 +166,7 @@ class SerialPanel(QWidget):
         self.diagnostic_label = QLabel()
         self.diagnostic_label.setObjectName("serialDiagnostic")
         self.diagnostic_label.setWordWrap(True)
+        self.diagnostic_label.setVisible(zephyr_diagnostics)
         layout.addWidget(self.diagnostic_label)
         self.output = output_box("连接设备串口后，接收的内容会显示在这里。")
         layout.addWidget(self.output, 1)
@@ -203,6 +205,8 @@ class SerialPanel(QWidget):
         self._refresh_diagnostic()
 
     def _refresh_diagnostic(self) -> None:
+        if not self._zephyr_diagnostics:
+            return
         port_info = self._port_info
         info_device = (
             port_info.get("device") if isinstance(port_info, dict)

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from .config import settings_path
+from .config import legacy_config_dir, settings_path
 
 
 class AgentConfigError(Exception):
@@ -90,7 +90,17 @@ def save_agent_config(config: AgentConfig, path: Path | None = None) -> None:
 
 
 def load_agent_config(path: Path | None = None) -> AgentConfig:
-    path = path or agent_config_path()
+    if path is None:
+        path = agent_config_path()
+        legacy = legacy_config_dir() / "agent.json"
+        if not path.exists() and not os.environ.get("QYS_CONFIG_HOME"):
+            if legacy.is_file():
+                config = load_agent_config(legacy)
+                try:
+                    save_agent_config(config, path)
+                except OSError as exc:
+                    raise AgentConfigError("无法迁移模型设置，请重新配置。") from exc
+                return config
     if not path.exists():
         return AgentConfig()
     try:

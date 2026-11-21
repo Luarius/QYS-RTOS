@@ -51,6 +51,11 @@ class EditorWorkspaceTests(unittest.TestCase):
         self.assertEqual(saved_bytes.count(b"\n"), saved_bytes.count(b"\r\n"))
         self.assertEqual(saved, [str((self.root / "src" / "main.c").resolve())])
 
+    def test_open_project_succeeds_if_the_default_file_cannot_be_opened(self):
+        with patch.object(self.workspace, "open_file", return_value=False):
+            self.assertTrue(self.workspace.set_project(self.root))
+        self.assertEqual(self.workspace.project_root, self.root.resolve())
+
     def test_close_all_cancel_keeps_dirty_buffer_open(self):
         self.assertTrue(self.workspace.set_project(self.root))
         self._editor().appendPlainText("// unsaved")

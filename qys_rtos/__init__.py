@@ -1,3 +1,3 @@
-"""QYS RTOS: a Windows desktop workspace for Zephyr."""
+"""QYS RTOS: a Windows desktop workspace for Zephyr and ordinary MCU projects."""
 
-__version__ = "1.1"
+__version__ = "1.2"

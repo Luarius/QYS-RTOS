@@ -1,12 +1,12 @@
 # QYS RTOS
 
-> 面向 Zephyr 开发者的 Windows 桌面开发工具：把工程管理、代码编辑、编译、烧录、串口监视和 AI 辅助修改集中在一个界面中。
+> 面向嵌入式开发者的 Windows 桌面工作台，支持 Zephyr 和基于 PlatformIO 的普通单片机工程。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 项目简介
 
-QYS RTOS 是一个面向嵌入式开发者的 Windows 桌面软件，重点服务于使用 Zephyr RTOS 的 ESP32、STM32、RISC-V 等开发板。它不替代 Zephyr、west 或芯片厂商 SDK，而是为这些工具提供更直观的图形化工作台。
+QYS RTOS 在同一个窗口提供 **Zephyr 工程** 和 **普通单片机** 两个工作台。Zephyr 工程由 west 和 Zephyr SDK 构建、烧录。普通单片机工程由 PlatformIO Core 管理工具链、构建和烧录。
 
 软件希望解决的问题很简单：开发者不必在编辑器、PowerShell、串口工具和烧录工具之间来回切换，就可以在同一个项目界面中完成“打开工程 → 修改代码 → 编译 → 烧录 → 查看串口日志”的基本流程。
 
@@ -14,6 +14,7 @@ QYS RTOS 是一个面向嵌入式开发者的 Windows 桌面软件，重点服�
 
 - **Zephyr 工程管理**：创建模板工程、打开已有工程、浏览和编辑源码。
 - **编译与烧录**：调用当前工作区的 west 和目标板工具链，保留按开发板区分的构建目录。
+- **普通单片机工作台**可按需下载板卡支持包，新建或打开 PlatformIO 工程，按选定的构建环境编译、烧录和监视串口。
 - **串口监视**：查看启动日志、应用输出和编译/烧录过程中的端口信息。
 - **设备树辅助**：查看最近一次构建生成的设备树，并生成 overlay 配置预览。
 - **环境引导**：检查 Python、Git、west、Zephyr 工作区和 SDK，辅助安装缺失的前置工具。
@@ -43,10 +44,10 @@ python run_app.py
 
 ```powershell
 python -m pip install -r requirements-build.txt
-.\scripts\build.ps1 -DistRoot .\release\QYS-RTOS-1.1-build
+.\scripts\build.ps1 -DistRoot .\release\QYS-RTOS-1.2-build
 python .\scripts\create_installer.py `
-  ".\release\QYS-RTOS-1.1-build\QYS RTOS" `
-  ".\release\QYS-RTOS-1.1-build\installer\QYS-RTOS-Setup.exe" `
+  ".\release\QYS-RTOS-1.2-build\QYS RTOS" `
+  ".\release\QYS-RTOS-1.2-build\installer\QYS-RTOS-1.2-Setup.exe" `
   --compiler "C:\Program Files (x86)\NSIS\makensis.exe"
 ```
 
@@ -75,6 +76,21 @@ Windows 上优先使用 Python 3.12。安装向导会检测常用前置工具，
 烧录器由 Zephyr 构建结果指定。ESP32 和 stm32flash 使用顶部选择的串口；SWD/J-Link 等烧录器通常使用自己的设备发现方式，必要参数可填在底部 **附加参数**。实际支持情况取决于开发板对应的 SDK、下载器驱动和工具是否已安装。
 
 串口监视中的提示会显示所选端口的信息和当前构建的 `zephyr,console` 路由。如果没有输出，请核对端口、波特率、接线和固件中的控制台配置。设备树和电脑端的端口信息不能单独证明二者接到了同一个物理接口。
+
+## 普通单片机工作台
+
+1. 点击窗口顶部的 **普通单片机**。软件会检测已有的 PlatformIO Core。也可以在 Core 菜单手动选择 `pio.exe`，或使用已安装的 Python 3.12 及以上版本联网安装 Core。
+2. 打开 **板卡扩展**，选中型号后点击 **下载支持包**，在输出区查看工具链和烧录器的下载进度。
+3. 点击 **新建普通工程**，选择板型和新目录。也可以打开已有的 `platformio.ini` 工程，在 **构建环境** 中选择目标。已有工程可使用其 PlatformIO 配置支持的板卡。
+4. 点击 **编译** 生成固件。点击 **烧录普通板卡**，确认板型、环境和目标后写入。使用串口烧录时先选 COM 口，使用 ST-Link 时接好 SWD。
+
+| 板卡模板 | 示例 | 烧录方式 |
+| --- | --- | --- |
+| ESP32-S3-DevKitC-1 N8 | Arduino 串口日志，115200 波特率 | esptool 串口 |
+| STM32F103C8T6 Blue Pill | STM32Cube HAL 翻转 PC13 | ST-Link / SWD |
+| STC89C52RC | SDCC 翻转 P1.0 | stcgal 串口，按提示给目标板重新上电 |
+
+1.2 的安装目录、快捷方式和设置独立命名。新版首次启动时可读取旧版的 Zephyr 设置，并将之后的更改写入新版设置目录。
 
 ## 使用 AI Agent
 

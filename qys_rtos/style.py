@@ -21,6 +21,7 @@ QPushButton#primaryButton { background: #4d9dff; color: #071421; border-color: #
 QPushButton#primaryButton:hover { background: #80b9ff; }
 QPushButton#primaryButton:disabled { background: #2a4058; color: #7e93a8; border-color: #2a4058; }
 QPushButton#buildButton { background: #25445c; color: #d9efff; border-color: #356789; font-weight: 600; }
+QPushButton#buildButton:disabled { color: #687b8d; background: #18222d; border-color: #273542; }
 QLineEdit, QComboBox, QPlainTextEdit, QTreeView { background: #0f1721; color: #dce7f3; border: 1px solid #304050; border-radius: 5px; selection-background-color: #315d84; selection-color: #ffffff; }
 QLineEdit { padding: 6px 8px; min-height: 20px; }
 QComboBox { padding: 5px 8px; min-height: 23px; }
@@ -35,6 +36,9 @@ QTabWidget::pane { border: 1px solid #304050; background: #101720; border-radius
 QTabBar::tab { background: transparent; color: #8ea2b6; padding: 8px 15px; border: 0; }
 QTabBar::tab:selected { color: #eef6ff; border-bottom: 2px solid #65aeff; }
 QTabBar::tab:hover { color: #cfe8ff; }
+QTabBar#workbenchModes::tab { background: #151e29; border: 1px solid #304050; border-radius: 6px; color: #a7b8c8; margin-left: 6px; padding: 8px 16px; }
+QTabBar#workbenchModes::tab:selected { background: #25445c; border-color: #548cc1; color: #eef6ff; font-weight: 700; }
+QTabBar#workbenchModes::tab:!selected:hover { background: #222f3d; color: #eef6ff; }
 QSplitter::handle { background: #263543; }
 QStatusBar { color: #a7bacb; background: #101923; }
 QStatusBar::item { border: 0; }

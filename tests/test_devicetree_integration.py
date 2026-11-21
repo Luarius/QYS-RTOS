@@ -101,6 +101,8 @@ class DeviceTreeIntegrationTests(unittest.TestCase):
         self.window._refresh_devicetree()
         self.assertEqual(self.window.device_tree.tree.topLevelItemCount(), 0)
         self.assertIn("未成功", self.window.device_tree.summary.text())
+        with patch.object(self.window.operation, "start", return_value=True):
+            self.window._start_operation("编译", ["fake-build"])
         self.window._operation_finished(0, False)
         self.window._refresh_devicetree()
         self.assertEqual(self.window.device_tree.tree.topLevelItemCount(), 1)

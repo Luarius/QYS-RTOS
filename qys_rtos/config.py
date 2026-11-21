@@ -8,6 +8,8 @@ import tempfile
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 
+from . import __version__
+
 
 @dataclass
 class AppSettings:
@@ -18,16 +20,27 @@ class AppSettings:
     board: str = ""
     build_dir: str = ""
     port: str = ""
+    ordinary_project: str = ""
+    ordinary_environment: str = ""
+    ordinary_port: str = ""
+    platformio: str = ""
+
+
+def legacy_config_dir() -> Path:
+    return Path(os.environ.get("APPDATA") or Path.home()) / "QYS RTOS"
 
 
 def settings_path() -> Path:
     override = os.environ.get("QYS_CONFIG_HOME")
-    base = Path(override) if override else Path(os.environ.get("APPDATA") or Path.home()) / "QYS RTOS"
+    base = Path(override) if override else legacy_config_dir().with_name(f"QYS RTOS {__version__}")
     return base / "settings.json"
 
 
 def load_settings(path: Path | None = None) -> AppSettings:
-    path = path or settings_path()
+    if path is None:
+        path = settings_path()
+        if not path.exists() and not os.environ.get("QYS_CONFIG_HOME"):
+            path = legacy_config_dir() / "settings.json"
     try:
         document = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(document, dict):

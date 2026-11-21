@@ -1,6 +1,8 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from qys_rtos.agent_config import AgentConfig, AgentConfigError, load_agent_config, save_agent_config
 
@@ -35,3 +37,13 @@ class AgentConfigTests(unittest.TestCase):
         with self.assertRaises(AgentConfigError):
             save_agent_config(AgentConfig("https://api.example.com", "", "key"), self.path)
         self.assertFalse(self.path.exists())
+
+    def test_agent_config_is_copied_once_into_the_versioned_directory(self):
+        previous = Path(self.temp.name) / "QYS RTOS" / "agent.json"
+        first = AgentConfig("https://first.example.com", "model", "test-key")
+        second = AgentConfig("https://second.example.com", "model", "other-key")
+        save_agent_config(first, previous)
+        with patch.dict(os.environ, {"APPDATA": self.temp.name, "QYS_CONFIG_HOME": ""}):
+            self.assertEqual(load_agent_config(), first)
+            save_agent_config(second, previous)
+            self.assertEqual(load_agent_config(), first)

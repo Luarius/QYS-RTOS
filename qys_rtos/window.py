@@ -16,12 +16,13 @@ from PySide6.QtGui import QGuiApplication, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QComboBox, QCompleter, QDialog, QDockWidget, QFileDialog, QFrame, QHBoxLayout,
     QInputDialog, QLabel, QLineEdit, QMainWindow, QMessageBox, QPushButton,
-    QSplitter, QTabWidget, QVBoxLayout, QWidget,
+    QSplitter, QStackedWidget, QTabBar, QTabWidget, QVBoxLayout, QWidget,
 )
 
 from . import __version__
 from .config import AppSettings, load_settings, save_settings
 from .agent_panel import AgentPanel
+from .board_workspace import BoardWorkspace
 from .editor import EditorWorkspace
 from .devicetree import DeviceTreeError, read_devicetree
 from .devicetree_panel import DeviceTreePanel
@@ -155,14 +156,17 @@ class MainWindow(QMainWindow):
         self.board_process = CommandRunner(self)
         self._board_chunks: list[str] = []
         self._operation_kind = ""
+        self._operation_cancelled = False
         self._flash_after_build = False
         self._agent_busy = False
         self._auto_build_dir = True
         self._closing = False
+        self._close_prompt_open = False
         self._documents_closed = False
         self._port_infos = {}
         self._invalid_build_locations: set[str] = set()
         self._active_build_location: str | None = None
+        self._show_agent_in_zephyr = True
 
         self._build_interface()
         self.operation.output.connect(self._append_operation_output)
@@ -212,11 +216,11 @@ class MainWindow(QMainWindow):
         root = QWidget()
         root.setObjectName("appRoot")
         self.setCentralWidget(root)
-        outer = QVBoxLayout(root)
-        outer.setContentsMargins(18, 14, 18, 12)
-        outer.setSpacing(10)
+        layout = QVBoxLayout(root)
+        layout.setContentsMargins(18, 14, 18, 12)
+        layout.setSpacing(10)
 
-        header = QHBoxLayout()
+        title_bar = QHBoxLayout()
         brand = QLabel("Q")
         brand.setObjectName("brandMark")
         brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -224,10 +228,35 @@ class MainWindow(QMainWindow):
         titles.setSpacing(0)
         name = QLabel("QYS RTOS")
         name.setObjectName("appTitle")
-        subtitle = QLabel(f"ZEPHYR 开发工作台  ·  {__version__}")
+        subtitle = QLabel(f"嵌入式开发工作台  ·  {__version__}")
         subtitle.setObjectName("appSubtitle")
         titles.addWidget(name)
         titles.addWidget(subtitle)
+        title_bar.addWidget(brand)
+        title_bar.addSpacing(6)
+        title_bar.addLayout(titles)
+        title_bar.addStretch(1)
+        self.mode_tabs = QTabBar()
+        self.mode_tabs.setObjectName("workbenchModes")
+        self.mode_tabs.setAccessibleName("开发工作台模式")
+        self.mode_tabs.setExpanding(False)
+        self.mode_tabs.setDrawBase(False)
+        self.mode_tabs.addTab("Zephyr 工程")
+        self.mode_tabs.addTab("普通单片机")
+        title_bar.addWidget(self.mode_tabs)
+        layout.addLayout(title_bar)
+
+        self.mode_stack = QStackedWidget()
+        self.zephyr_workspace = QWidget()
+        self.mode_stack.addWidget(self.zephyr_workspace)
+        self.board_workspace = BoardWorkspace(self.settings)
+        self.mode_stack.addWidget(self.board_workspace)
+        layout.addWidget(self.mode_stack, 1)
+        outer = QVBoxLayout(self.zephyr_workspace)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(10)
+
+        header = QHBoxLayout()
         self.environment_badge = QLabel("尚未配置环境")
         self.environment_badge.setObjectName("environmentBadge")
         self.environment_badge.setToolTip("点击右侧设置已有 Zephyr 环境，或使用环境引导。")
@@ -238,10 +267,6 @@ class MainWindow(QMainWindow):
         self.agent_button = QPushButton("AI Agent")
         self.agent_button.setCheckable(True)
         self.agent_button.setChecked(True)
-        header.addWidget(brand)
-        header.addSpacing(6)
-        header.addLayout(titles)
-        header.addSpacing(18)
         header.addWidget(self.environment_badge)
         header.addStretch(1)
         for button in (self.new_button, self.open_button, self.env_button, self.setup_button, self.agent_button):
@@ -279,7 +304,7 @@ class MainWindow(QMainWindow):
         bar_layout.addStretch(1)
         self.build_button = QPushButton("编译")
         self.build_button.setObjectName("buildButton")
-        self.flash_button = QPushButton("▶  烧录")
+        self.flash_button = QPushButton("▶  烧录 Zephyr")
         self.flash_button.setObjectName("primaryButton")
         self.flash_button.setToolTip("保存并编译当前工程，成功后烧录到所选开发板。")
         self.stop_button = QPushButton("停止")
@@ -373,7 +398,7 @@ class MainWindow(QMainWindow):
         self.ports_button.clicked.connect(self.refresh_ports)
         self.build_button.clicked.connect(self.build_project)
         self.flash_button.clicked.connect(self.flash_project)
-        self.stop_button.clicked.connect(self.operation.stop)
+        self.stop_button.clicked.connect(self._stop_operation)
         self.build_browse.clicked.connect(self.choose_build_dir)
         self.build_reset.clicked.connect(self.reset_build_dir)
         self.build_dir.textEdited.connect(self._build_dir_edited)
@@ -386,7 +411,44 @@ class MainWindow(QMainWindow):
         self.device_tree.refresh_requested.connect(self._refresh_devicetree)
         self.device_tree.append_requested.connect(self._append_devicetree)
         self._build_shortcut = QShortcut(QKeySequence("Ctrl+B"), self)
-        self._build_shortcut.activated.connect(self.build_project)
+        self._build_shortcut.activated.connect(self._build_current_workspace)
+        self.mode_tabs.currentChanged.connect(self._switch_workspace)
+        self.board_workspace.busy_changed.connect(self._update_mode_tabs)
+        self.board_workspace.status_changed.connect(self.statusBar().showMessage)
+        self.board_workspace.settings_changed.connect(self._save_settings)
+        self.board_workspace.editor.set_save_shortcut_enabled(False)
+
+    def _build_current_workspace(self) -> None:
+        if self.mode_stack.currentWidget() is self.board_workspace:
+            self.board_workspace.build_project()
+        else:
+            self.build_project()
+
+    def _update_mode_tabs(self, *_args) -> None:
+        self.mode_tabs.setEnabled(
+            not (self._operation_kind or self.operation.is_running or self._flash_after_build or self._agent_busy
+                 or self.board_workspace.busy or self._closing)
+        )
+
+    def _switch_workspace(self, index: int) -> None:
+        if not self.mode_tabs.isEnabled():
+            with QSignalBlocker(self.mode_tabs):
+                self.mode_tabs.setCurrentIndex(self.mode_stack.currentIndex())
+            return
+        ordinary = index == 1
+        if ordinary:
+            self._show_agent_in_zephyr = self.agent_button.isChecked()
+            self.agent_dock.hide()
+            self.serial.close_port()
+        else:
+            self.board_workspace.serial.close_port()
+            self.agent_dock.setVisible(self._show_agent_in_zephyr)
+        self.mode_stack.setCurrentIndex(index)
+        self.editor.set_save_shortcut_enabled(not ordinary)
+        self.board_workspace.editor.set_save_shortcut_enabled(ordinary)
+        self.statusBar().showMessage("普通单片机" if ordinary else "Zephyr 工程", 3000)
+        if ordinary:
+            self.board_workspace.activate()
 
     def _restore_project(self) -> None:
         candidate = self.settings.project
@@ -534,7 +596,8 @@ class MainWindow(QMainWindow):
             self.board_combo.clear()
             self.board_combo.addItems(boards)
             self.board_combo.setEditText(current)
-        self.statusBar().showMessage(f"已读取 {len(boards)} 个开发板目标", 5000)
+        if self.mode_stack.currentWidget() is self.zephyr_workspace:
+            self.statusBar().showMessage(f"已读取 {len(boards)} 个开发板目标", 5000)
 
     def refresh_ports(self) -> None:
         current = self.port_combo.currentData()
@@ -689,7 +752,8 @@ class MainWindow(QMainWindow):
                     break
 
     def _prepare_build(self) -> list[str] | None:
-        if self._agent_busy or self.operation.is_running or not self._valid_environment():
+        if (self._closing or self._agent_busy or self._operation_kind or self.operation.is_running
+                or self._flash_after_build or not self._valid_environment()):
             return None
         if not self.editor.project_root:
             QMessageBox.warning(self, "没有打开工程", "请先新建或打开一个 Zephyr 工程。")
@@ -710,7 +774,6 @@ class MainWindow(QMainWindow):
             return None
 
     def build_project(self) -> None:
-        self._flash_after_build = False
         command = self._prepare_build()
         if command:
             self._start_operation("编译", command)
@@ -728,6 +791,7 @@ class MainWindow(QMainWindow):
         if not self.environment:
             return
         self._operation_kind = kind
+        self._operation_cancelled = False
         if kind == "编译":
             location = Path(self.build_dir.text().strip()).expanduser()
             if not location.is_absolute():
@@ -739,6 +803,7 @@ class MainWindow(QMainWindow):
         self.console_tabs.setCurrentIndex(0)
         append_output(self.build_output, f"\n── {kind} ──\n> {subprocess.list2cmdline(command)}\n")
         if not self.operation.start(command, cwd=self.environment.workspace, env=self.environment.process_env()):
+            self._operation_kind = ""
             self._flash_after_build = False
             self._operation_state_changed(False)
             self.statusBar().showMessage(f"无法启动{kind}，请检查输出", 10000)
@@ -747,16 +812,24 @@ class MainWindow(QMainWindow):
     def _append_operation_output(self, text: str) -> None:
         append_output(self.build_output, text)
 
+    def _stop_operation(self) -> None:
+        self._flash_after_build = False
+        self._operation_cancelled = True
+        self.operation.stop()
+        self._operation_state_changed(self.operation.is_running)
+
     def _operation_state_changed(self, running: bool) -> None:
-        busy = running or self._flash_after_build or self._agent_busy
+        active = running or bool(self._operation_kind)
+        busy = active or self._flash_after_build or self._agent_busy
         for button in (self.build_button, self.flash_button, self.new_button, self.open_button, self.env_button, self.setup_button, self.ports_button, self.build_browse, self.build_reset):
             button.setEnabled(not busy)
         self.boards_button.setEnabled(not busy and not self.board_process.is_running)
         for field in (self.board_combo, self.port_combo, self.build_dir, self.runner_combo, self.extra_args, self.workspace_tabs):
             field.setEnabled(not busy)
-        self.stop_button.setEnabled(running)
+        self.stop_button.setEnabled(active or self._flash_after_build)
         self.serial.open_button.setEnabled(not busy)
-        self.agent_panel.setEnabled(not (running or self._flash_after_build))
+        self.agent_panel.setEnabled(not (active or self._flash_after_build))
+        self._update_mode_tabs()
         self._update_serial_diagnostic()
         self.statusBar().showMessage(f"正在{self._operation_kind}…" if running else ("Agent 正在处理任务…" if self._agent_busy else ("正在准备烧录…" if busy else "准备就绪")))
 
@@ -795,10 +868,11 @@ class MainWindow(QMainWindow):
         return text
 
     def _operation_finished(self, code: int, cancelled: bool) -> None:
-        kind = self._operation_kind
+        kind, self._operation_kind = self._operation_kind, ""
+        cancelled = cancelled or self._operation_cancelled
+        self._operation_cancelled = False
         outcome = "已停止" if cancelled else ("成功" if code == 0 else f"失败，退出代码 {code}")
         append_output(self.build_output, f"\n[{kind}{outcome}]\n")
-        self.statusBar().showMessage(f"{kind}{outcome}", 10000)
         if self._closing:
             self._flash_after_build = False
             return
@@ -811,11 +885,14 @@ class MainWindow(QMainWindow):
                 self._refresh_devicetree()
             if self._flash_after_build and code == 0 and not cancelled:
                 QTimer.singleShot(0, self._start_flash)
-            else:
-                self._flash_after_build = False
-                self._operation_state_changed(False)
+                return
+            self._flash_after_build = False
+        self._operation_state_changed(False)
+        self.statusBar().showMessage(f"{kind}{outcome}", 10000)
 
     def _start_flash(self) -> None:
+        if self._closing or self._close_prompt_open or not self._flash_after_build:
+            return
         if not self.environment:
             self._flash_after_build = False
             self._operation_state_changed(False)
@@ -865,11 +942,25 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"无法保存软件设置：{exc}", 10000)
 
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt virtual method name
+        if self._close_prompt_open:
+            event.ignore()
+            return
+        self._close_prompt_open = True
+        self.board_workspace.pause_follow_up(True)
+        try:
+            self._close_requested(event)
+        finally:
+            self._close_prompt_open = False
+            self.board_workspace.pause_follow_up(False)
+            if not self._closing and self._flash_after_build and not self._operation_kind:
+                QTimer.singleShot(0, self._start_flash)
+
+    def _close_requested(self, event) -> None:
         if self.agent_panel.busy:
             QMessageBox.information(self, "Agent 正在工作", "请先在 Agent 面板点击“停止”，等待任务结束后再关闭。")
             event.ignore()
             return
-        if self.operation.is_running and not self._closing:
+        if (self._operation_kind or self._flash_after_build or self.board_workspace.busy) and not self._closing:
             answer = QMessageBox.question(
                 self, "操作仍在运行", "当前命令仍在运行。停止命令并退出吗？",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
@@ -880,17 +971,19 @@ class MainWindow(QMainWindow):
                 return
         if not self._documents_closed:
             self._save_settings()
-            if not self.editor.close_all():
+            if not self.editor.confirm_close_all() or not self.board_workspace.editor.confirm_close_all():
                 event.ignore()
                 return
             self._documents_closed = True
         self._closing = True
         self._flash_after_build = False
+        self.board_workspace.shut_down()
         self.serial.close_port()
         self.shell.close_shell()
         self.board_process.stop()
         self.operation.stop()
-        if self.operation.is_running or self.board_process.is_running or self.shell.runner.is_running:
+        if (self.operation.is_running or self.board_process.is_running
+                or self.shell.runner.is_running or self.board_workspace.busy):
             event.ignore()
             QTimer.singleShot(150, self.close)
         else:

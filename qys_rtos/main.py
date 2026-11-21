@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import QApplication
 
+from .board_support import BOARD_EXTENSIONS
 from .style import STYLE
 from .window import MainWindow
 
@@ -74,6 +75,8 @@ def main(argv: list[str] | None = None) -> int:
                 "workspace": str(window.environment.workspace) if window.environment else None,
                 "project": str(window.editor.project_root) if window.editor.project_root else None,
                 "board_count": window.board_combo.count(),
+                "workspaces": [window.mode_tabs.tabText(index) for index in range(window.mode_tabs.count())],
+                "ordinary_boards": [extension.board for extension in BOARD_EXTENSIONS],
             }
             report.update(build_result)
             report_path.parent.mkdir(parents=True, exist_ok=True)
