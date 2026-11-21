@@ -1954,6 +1954,10 @@ p {
     padding: 43px 0 21px;
   }
 
+  .hero::after {
+    display: none;
+  }
+
   .hero-grid {
     gap: 29px;
   }
@@ -1991,6 +1995,10 @@ p {
 
   .product-figure {
     padding-bottom: 9px;
+  }
+
+  .orbit-one {
+    right: 0;
   }
 
   .product-shot-wrap {
